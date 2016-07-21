@@ -12,7 +12,7 @@ struct Box {
             (2 * self.l * self.w),
             (2 * self.w * self.h),
             (2 * self.h * self.l),
-            ]
+        ]
     }
 
     var wrapping: Int {
@@ -22,21 +22,33 @@ struct Box {
     var slack: Int {
         return sides.min()! / 2
     }
+
+}
+
+extension Box {
+    init?(from string: String){
+        let stringComponents = string.components(separatedBy: "x")
+        guard stringComponents.count == 3 else {
+            return nil
+        }
+
+        let integerComponents = stringComponents.map { Int($0)! }
+
+        self.l = integerComponents[0]
+        self.w = integerComponents[1]
+        self.h = integerComponents[2]
+    }
 }
 
 let path = Bundle.main.pathForResource("Data", ofType: "txt")
-let data = FileManager.default.contents(atPath: path!)
-let csv = String(data: data!, encoding: String.Encoding.utf8)!
+let rawData = FileManager.default.contents(atPath: path!)
+let stringData = String(data: rawData!, encoding: String.Encoding.utf8)!
 
-let total = csv
+let boxes = stringData
     .components(separatedBy: "\n")
-    .filter { $0.characters.count > 0 }
-    .map ({
-        $0.components(separatedBy: "x").map({ Int($0)! })
-    })
-    .map({
-        boxInts in return Box(l: boxInts[0], w: boxInts[1], h: boxInts[2])
-    })
-    .reduce(0, combine: { return $0.0 + ($0.1.slack + $0.1.wrapping) })
+    .map { Box(from: $0) }
+    .flatMap { $0 }
 
-print("Total feet of paper required for wrapping: \(total)")
+let totalWrappingPaper = boxes.reduce(0, combine: { return $0.0 + ($0.1.slack + $0.1.wrapping) })
+
+print("Total wrapping paper: \(totalWrappingPaper) feet")
