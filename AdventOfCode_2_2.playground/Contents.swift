@@ -8,6 +8,10 @@ struct Box {
     let h: Int
 
     var sides: [Int] {
+        return [l, w, h]
+    }
+
+    var sideAreas: [Int] {
         return [
             (2 * self.l * self.w),
             (2 * self.w * self.h),
@@ -16,13 +20,21 @@ struct Box {
     }
 
     var wrapping: Int {
-        return sides.reduce(0, combine: +)
+        return sideAreas.reduce(0, combine: +)
     }
 
     var slack: Int {
-        return sides.min()! / 2
+        return sideAreas.min()! / 2
     }
 
+    var ribbon: Int {
+        let smallestTwoSides = sides.reduce((Int.max, Int.max)) { $1 < $0.0 ? ($1, $0.0) : ($1 < $0.1 ? ($0.0, $1) : $0) }
+        return (smallestTwoSides.0 * 2) + (smallestTwoSides.1 * 2)
+    }
+
+    var bow: Int {
+        return sides.reduce(1, combine: *)
+    }
 }
 
 extension Box {
@@ -49,6 +61,8 @@ let boxes = stringData
     .map { Box(from: $0) }
     .flatMap { $0 }
 
-let totalWrappingPaper = boxes.reduce(0, combine: { return $0.0 + ($0.1.slack + $0.1.wrapping) })
+let totalWrappingPaper = boxes.reduce(0, combine: { $0.0 + ($0.1.slack + $0.1.wrapping) })
+print("Total paper: \(totalWrappingPaper) feet")
 
-print("Total wrapping paper: \(totalWrappingPaper) feet")
+let totalRibbon = boxes.reduce(0, combine: { $0.0 + ($0.1.ribbon + $0.1.bow) })
+print("Total ribbon: \(totalRibbon) feet")
